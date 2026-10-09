@@ -14,7 +14,8 @@ Built using the **Free Cash Flow to Firm (FCFF)** methodology, this project brid
 
 Explore the live valuation model with dynamic sensitivity sliders and scenario testing:
 
-👉 **[Launch Live Streamlit Dashboard](https://your-streamlit-app-url-here.streamlit.app)**  
+https://finance-with-simran-infosys-dcf-valuation-app-lvgbrr.streamlit.app/
+
 *(Replace this URL with your live Streamlit Cloud link after deploying)*
 
 ---
