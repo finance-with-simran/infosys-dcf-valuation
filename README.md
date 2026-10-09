@@ -10,8 +10,7 @@ This project bridges **rigorous institutional financial modeling in Microsoft Ex
 
 Explore the live valuation model with dynamic scenario sliders, real-time market data, and interactive sensitivity matrices:
 
-👉 **[Launch Live Streamlit Dashboard](https://your-streamlit-app-url-here.streamlit.app)**  
-*(Deploy via Streamlit Community Cloud and update this link with your live URL)*
+https://finance-with-simran-infosys-dcf-valuation-app-ciasma.streamlit.app/
 
 ---
 
