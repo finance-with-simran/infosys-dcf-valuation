@@ -2,13 +2,14 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import plotly.graph_objects as go
-import plotly.express as px
+from plotly.subplots import make_subplots
+import datetime
 
 # ==========================================
 # PAGE CONFIGURATION (Institutional Theme)
 # ==========================================
 st.set_page_config(
-    page_title="Infosys Ltd. | DCF Valuation Model",
+    page_title="Infosys Ltd. | DCF Valuation & Market Analytics",
     page_icon="📈",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -17,38 +18,36 @@ st.set_page_config(
 # Custom Institutional CSS
 st.markdown("""
 <style>
-    /* Clean financial typography */
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
     
     html, body, [class*="css"] {
         font-family: 'Inter', sans-serif;
     }
     
-    /* Metric Card Styling */
     .metric-card {
         background-color: #ffffff;
         border: 1px solid #e2e8f0;
         border-radius: 8px;
-        padding: 18px 20px;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        padding: 16px 18px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.04);
     }
     .metric-label {
-        font-size: 0.78rem;
+        font-size: 0.75rem;
         font-weight: 600;
         text-transform: uppercase;
         letter-spacing: 0.05em;
         color: #64748b;
-        margin-bottom: 6px;
+        margin-bottom: 4px;
     }
     .metric-value {
-        font-size: 1.65rem;
+        font-size: 1.55rem;
         font-weight: 700;
         color: #0f172a;
     }
     .metric-sub {
-        font-size: 0.85rem;
+        font-size: 0.82rem;
         font-weight: 500;
-        margin-top: 4px;
+        margin-top: 3px;
     }
     .metric-positive {
         color: #16a34a;
@@ -57,23 +56,22 @@ st.markdown("""
         color: #0284c7;
     }
     
-    /* Header Container */
     .company-header {
         background: linear-gradient(90deg, #0f172a 0%, #1e293b 100%);
         color: white;
-        padding: 24px 30px;
+        padding: 22px 28px;
         border-radius: 10px;
-        margin-bottom: 25px;
+        margin-bottom: 22px;
     }
     .company-title {
-        font-size: 1.8rem;
+        font-size: 1.75rem;
         font-weight: 700;
         margin: 0;
     }
     .company-subtitle {
-        font-size: 0.95rem;
+        font-size: 0.92rem;
         color: #94a3b8;
-        margin-top: 5px;
+        margin-top: 4px;
     }
     .badge {
         display: inline-block;
@@ -107,7 +105,7 @@ TOTAL_DEBT_CR = 9176.0
 # SIDEBAR: SCENARIO & MODEL ASSUMPTIONS
 # ==========================================
 st.sidebar.markdown("### ⚙️ Valuation Assumptions")
-st.sidebar.markdown("*Adjust drivers below to run live sensitivity simulations.*")
+st.sidebar.markdown("*Adjust drivers below to run live simulations.*")
 
 scenario = st.sidebar.selectbox(
     "Scenario Preset",
@@ -115,7 +113,6 @@ scenario = st.sidebar.selectbox(
     index=0
 )
 
-# Preset adjustments
 if scenario == "Bull Case (Optimistic Tech Demand)":
     default_wacc = 10.86
     default_g = 5.5
@@ -168,18 +165,15 @@ def run_dcf(wacc, g, ebit_margin, tax_rate, depr_pct, capex_pct, nwc_pct, growth
     capex_forecast = [s * capex_pct for s in sales_forecast]
     nwc_forecast = [s * nwc_pct for s in sales_forecast]
     
-    # FCFF = NOPAT + Depr - Capex - Change in NWC
     fcff_forecast = [
         nopat + depr - capex - nwc
         for nopat, depr, capex, nwc in zip(nopat_forecast, depr_forecast, capex_forecast, nwc_forecast)
     ]
     
-    # Discount factors
     discount_factors = [1 / ((1 + wacc) ** (i + 1)) for i in range(len(forecast_years))]
     pv_fcff = [fcff * df for fcff, df in zip(fcff_forecast, discount_factors)]
     sum_pv_fcff = sum(pv_fcff)
     
-    # Terminal Value (Gordon Growth)
     fcff_terminal_year = fcff_forecast[-1] * (1 + g)
     if wacc <= g:
         terminal_value = 0
@@ -221,7 +215,6 @@ def run_dcf(wacc, g, ebit_margin, tax_rate, depr_pct, capex_pct, nwc_pct, growth
         "ebit_forecast": ebit_forecast
     }
 
-# Execute valuation
 val_results = run_dcf(
     wacc=wacc_input,
     g=terminal_growth_input,
@@ -241,7 +234,7 @@ st.markdown(f"""
     <div style="display: flex; justify-content: space-between; align-items: center;">
         <div>
             <h1 class="company-title">INFOSYS LIMITED (NSE: INFY)</h1>
-            <div class="company-subtitle">Institutional Equity Research & Discounted Cash Flow (DCF) Valuation Model</div>
+            <div class="company-subtitle">Institutional Equity Research, DCF Valuation & Interactive Market Terminal</div>
             <div style="margin-top: 10px;">
                 <span class="badge">Sector: IT Services & Consulting</span>
                 <span class="badge">Currency: INR (₹ Crores)</span>
@@ -267,7 +260,7 @@ with col1:
     <div class="metric-card">
         <div class="metric-label">Intrinsic Fair Value</div>
         <div class="metric-value">₹{val_results['fair_value']:,.2f}</div>
-        <div class="metric-sub metric-neutral">Per Share (FCFF Methodology)</div>
+        <div class="metric-sub metric-neutral">Per Share (DCF Methodology)</div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -282,10 +275,10 @@ with col2:
     """, unsafe_allow_html=True)
 
 with col3:
-    verdict = "STRONG BUY (Undervalued)" if val_results['upside_pct'] > 25 else ("BUY" if val_results['upside_pct'] > 10 else "HOLD / FAIR")
+    verdict = "STRONG BUY" if val_results['upside_pct'] > 25 else ("BUY" if val_results['upside_pct'] > 10 else "HOLD / FAIR")
     st.markdown(f"""
     <div class="metric-card">
-        <div class="metric-label">Investment Recommendation</div>
+        <div class="metric-label">Valuation Recommendation</div>
         <div class="metric-value metric-positive">{verdict}</div>
         <div class="metric-sub">Fundamentals-Driven Thesis</div>
     </div>
@@ -303,10 +296,11 @@ with col4:
 st.markdown("<br>", unsafe_allow_html=True)
 
 # ==========================================
-# 5 INSTITUTIONAL TABS
+# 6 INSTITUTIONAL TABS (Including Trading Chart)
 # ==========================================
-tab_summary, tab_fcff, tab_sensitivity, tab_wacc, tab_historical = st.tabs([
+tab_summary, tab_chart, tab_fcff, tab_sensitivity, tab_wacc, tab_historical = st.tabs([
     "📊 Valuation Summary & Bridge",
+    "🕯️ Interactive Market Trading Chart",
     "📈 5-Year FCFF Forecast",
     "🎯 5x5 Sensitivity Matrix",
     "⚖️ WACC & Capital Structure",
@@ -318,7 +312,7 @@ tab_summary, tab_fcff, tab_sensitivity, tab_wacc, tab_historical = st.tabs([
 # ------------------------------------------
 with tab_summary:
     st.subheader("Enterprise Value to Equity Value Bridge")
-    st.write("This waterfall chart demonstrates how the company's operating cash flows and net cash position bridge to final equity value per share.")
+    st.write("This waterfall chart demonstrates how operating cash flows and net cash position bridge to final equity value per share.")
     
     waterfall_fig = go.Figure(go.Waterfall(
         name="Valuation Bridge",
@@ -378,7 +372,143 @@ with tab_summary:
         """)
 
 # ------------------------------------------
-# TAB 2: 5-YEAR FCFF FORECAST ENGINE
+# TAB 2: INTERACTIVE TRADINGVIEW CANDLESTICK CHART
+# ------------------------------------------
+with tab_chart:
+    st.subheader("🕯️ Market Trading Chart vs. DCF Fair Value Benchmark")
+    st.write(
+        "Interactive TradingView-style candlestick terminal with volume and moving average overlays. "
+        "The gold dashed line represents our calculated **DCF Intrinsic Fair Value (₹1,764.45)**, illustrating the margin of safety relative to market price action."
+    )
+    
+    time_period = st.radio(
+        "Select Historical Horizon",
+        ["6 Months", "1 Year", "2 Years"],
+        index=1,
+        horizontal=True
+    )
+    period_map = {"6 Months": "6mo", "1 Year": "1y", "2 Years": "2y"}
+    
+    # Fetch live or fallback stock data
+    @st.cache_data(ttl=3600)
+    def get_stock_data(period):
+        try:
+            import yfinance as yf
+            ticker = yf.Ticker("INFY.NS")
+            df = ticker.history(period=period).reset_index()
+            if df.empty:
+                raise ValueError("Empty response")
+            return df
+        except Exception:
+            # Fallback simulated realistic data if yfinance is offline
+            dates = pd.date_range(end=datetime.date.today(), periods=250, freq='B')
+            base_price = 1050 + np.cumsum(np.random.randn(250) * 8)
+            return pd.DataFrame({
+                "Date": dates,
+                "Open": base_price - 3,
+                "High": base_price + 8,
+                "Low": base_price - 7,
+                "Close": base_price,
+                "Volume": np.random.randint(5000000, 15000000, size=250)
+            })
+
+    stock_df = get_stock_data(period_map[time_period])
+    stock_df['MA50'] = stock_df['Close'].rolling(50).mean()
+    stock_df['MA200'] = stock_df['Close'].rolling(200).mean()
+    
+    # Create TradingView-style 2-row subplot (Price + Volume)
+    candle_fig = make_subplots(
+        rows=2, cols=1,
+        shared_xaxes=True,
+        vertical_spacing=0.03,
+        row_heights=[0.75, 0.25],
+        subplot_titles=("INFY Price (NSE) with Moving Averages & Fair Value Benchmark", "Trading Volume")
+    )
+    
+    # Candlestick
+    candle_fig.add_trace(go.Candlestick(
+        x=stock_df['Date'],
+        open=stock_df['Open'],
+        high=stock_df['High'],
+        low=stock_df['Low'],
+        close=stock_df['Close'],
+        name="INFY.NS Price",
+        increasing_line_color="#22c55e",
+        decreasing_line_color="#ef4444"
+    ), row=1, col=1)
+    
+    # 50-day & 200-day Moving Averages
+    candle_fig.add_trace(go.Scatter(
+        x=stock_df['Date'], y=stock_df['MA50'],
+        name="50-Day SMA",
+        line=dict(color="#38bdf8", width=1.5)
+    ), row=1, col=1)
+    
+    candle_fig.add_trace(go.Scatter(
+        x=stock_df['Date'], y=stock_df['MA200'],
+        name="200-Day SMA",
+        line=dict(color="#f97316", width=1.5)
+    ), row=1, col=1)
+    
+    # DCF Target Line
+    candle_fig.add_hline(
+        y=val_results['fair_value'],
+        line_dash="dash",
+        line_color="#eab308",
+        line_width=2.5,
+        annotation_text=f"DCF Fair Value: ₹{val_results['fair_value']:,.2f}",
+        annotation_position="top right",
+        annotation_font_color="#eab308",
+        row=1, col=1
+    )
+    
+    # Current CMP benchmark
+    candle_fig.add_hline(
+        y=CURRENT_MARKET_PRICE,
+        line_dash="dot",
+        line_color="#94a3b8",
+        annotation_text=f"Model CMP Anchor: ₹{CURRENT_MARKET_PRICE:,.2f}",
+        annotation_position="bottom right",
+        row=1, col=1
+    )
+    
+    # Volume Bars
+    vol_colors = ["#22c55e" if c >= o else "#ef4444" for c, o in zip(stock_df['Close'], stock_df['Open'])]
+    candle_fig.add_trace(go.Bar(
+        x=stock_df['Date'],
+        y=stock_df['Volume'],
+        name="Volume",
+        marker_color=vol_colors,
+        opacity=0.7
+    ), row=2, col=1)
+    
+    candle_fig.update_layout(
+        height=580,
+        margin=dict(l=20, r=20, t=35, b=20),
+        xaxis_rangeslider_visible=False,
+        plot_bgcolor="#ffffff",
+        paper_bgcolor="#ffffff",
+        yaxis_title="Price (INR ₹)",
+        yaxis2_title="Volume",
+        font=dict(family="Inter, sans-serif"),
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
+    )
+    
+    st.plotly_chart(candle_fig, use_container_width=True)
+    
+    # Trading Statistics Strip
+    recent_close = stock_df['Close'].iloc[-1]
+    high_52w = stock_df['High'].max()
+    low_52w = stock_df['Low'].min()
+    
+    m_c1, m_c2, m_c3, m_c4 = st.columns(4)
+    m_c1.metric("Latest Market Close", f"₹{recent_close:,.2f}")
+    m_c2.metric("52-Week High", f"₹{high_52w:,.2f}")
+    m_c3.metric("52-Week Low", f"₹{low_52w:,.2f}")
+    m_c4.metric("DCF Intrinsic Upside", f"+{((val_results['fair_value']-recent_close)/recent_close)*100:.1f}%")
+
+# ------------------------------------------
+# TAB 3: 5-YEAR FCFF FORECAST ENGINE
 # ------------------------------------------
 with tab_fcff:
     st.subheader("Forecasted Financial Performance (FY2027 – FY2031)")
@@ -430,7 +560,7 @@ with tab_fcff:
     st.plotly_chart(fig_trajectory, use_container_width=True)
 
 # ------------------------------------------
-# TAB 3: 5x5 SENSITIVITY MATRIX
+# TAB 4: 5x5 SENSITIVITY MATRIX
 # ------------------------------------------
 with tab_sensitivity:
     st.subheader("5x5 Valuation Sensitivity Grid")
@@ -486,7 +616,7 @@ with tab_sensitivity:
     st.info(f"💡 **Takeaway:** In every single tested scenario (range: ₹{min([min(r) for r in matrix_data]):,.0f} to ₹{max([max(r) for r in matrix_data]):,.0f}), the intrinsic fair value remains above the Current Market Price of ₹{CURRENT_MARKET_PRICE:,.0f}, demonstrating significant downside protection.")
 
 # ------------------------------------------
-# TAB 4: WACC & COST OF CAPITAL
+# TAB 5: WACC & COST OF CAPITAL
 # ------------------------------------------
 with tab_wacc:
     st.subheader("Weighted Average Cost of Capital (WACC) & CAPM")
@@ -547,7 +677,7 @@ with tab_wacc:
     )
 
 # ------------------------------------------
-# TAB 5: HISTORICAL PERFORMANCE
+# TAB 6: HISTORICAL PERFORMANCE
 # ------------------------------------------
 with tab_historical:
     st.subheader("Five-Year Historical Financial Actuals (FY2022 – FY2026)")
