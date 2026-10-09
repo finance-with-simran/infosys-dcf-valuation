@@ -1,71 +1,136 @@
-# Infosys Ltd — DCF Valuation Model
+# 📈 Infosys Ltd. — Discounted Cash Flow (DCF) Valuation Model & Interactive Analytics Dashboard
 
-A ground-up Discounted Cash Flow (DCF) valuation of **Infosys Ltd (NSE: INFY)**, built entirely in Excel, to estimate the company's intrinsic fair value per share and compare it against its current market price.
+[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://your-streamlit-app-url-here.streamlit.app)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-## 📌 Project Overview
+An institutional-grade **Discounted Cash Flow (DCF) valuation** and **interactive equity research application** for **Infosys Ltd (NSE: INFY)**. 
 
-This project values Infosys using the **Free Cash Flow to Firm (FCFF)** approach — projecting the company's future cash flows, discounting them back to present value using a calculated WACC, and deriving a fair value per share. The model also includes a full **Sensitivity Analysis** to test how the valuation holds up across a range of key assumptions.
-
-**Objective:** Determine whether Infosys is fairly valued, undervalued, or overvalued relative to its current market price, using a fundamentals-driven approach.
-
-## 🔑 Key Result
-
-| Metric | Value |
-|---|---|
-| **Fair Value per Share (Base Case)** | ₹1,764.43 |
-| **Current Market Price** | ₹1,130.00 |
-| **Implied Upside** | ~56% |
-| **Sensitivity Range (WACC 10.36%–12.36%, Growth 4%–6%)** | ₹1,389 – ₹2,481 |
-
-Even under the most conservative assumptions tested, the model's fair value estimate stays above the current market price — suggesting Infosys may be undervalued based on this analysis.
-
-## 🛠️ Methodology
-
-The model is built across 6 structured tabs, following a standard institutional DCF framework:
-
-1. **Historical Financials** — 5 years of Infosys's actuals (FY2022–FY2026) sourced from screener.in, covering Sales, EBIT, Tax Rate, Depreciation, Capex, and Working Capital changes.
-
-2. **FCFF Calculation** — Historical Free Cash Flow to Firm computed as:
-   `FCFF = EBIT × (1 − Tax Rate) + Depreciation − Capex − Δ Working Capital`
-
-3. **Projections** — 5-year forward forecast (FY2027–FY2031) using a tapering revenue growth rate (10% → 6%), stable EBIT margin (~24%), and reinvestment ratios (Depreciation, Capex, Working Capital) held at historical averages as a % of Sales.
-
-4. **WACC** — Discount rate calculated using CAPM for Cost of Equity (Risk-Free Rate + Beta × Market Risk Premium) blended with post-tax Cost of Debt, weighted by Infosys's actual capital structure (~98% equity-funded).
-
-5. **DCF Valuation** — Each year's projected FCFF and a Gordon Growth Terminal Value (5% perpetual growth) discounted back to present value, aggregated into Enterprise Value, then adjusted for Debt and Cash to reach Equity Value and Fair Value per Share.
-
-6. **Sensitivity Analysis** — A 5×5 data table testing Fair Value per Share across a range of WACC and Terminal Growth Rate combinations, to assess how dependent the conclusion is on key assumptions.
-
-## 📊 Key Assumptions
-
-| Assumption | Value | Basis |
-|---|---|---|
-| Forecast Period | 5 years (FY2027–FY2031) | Standard DCF horizon |
-| Revenue Growth | Tapers 10% → 6% | Reflects slowing growth as base scales |
-| EBIT Margin | ~24% | 5-year historical average |
-| Tax Rate | ~27% | 5-year historical average |
-| Risk-Free Rate | 6.8% | India 10-Year G-Sec yield |
-| Beta | 0.85 | Typical for large-cap Indian IT services |
-| Market Risk Premium | 5.5% | Standard assumption, Indian equities |
-| WACC | 11.36% | CAPM-based, weighted by actual capital structure |
-| Terminal Growth Rate | 5.0% | Long-term India nominal GDP growth proxy |
-
-## 🧰 Tools Used
-
-- **Microsoft Excel** — full model build, formula-driven (no hardcoded outputs)
-- **Screener.in** — source for historical financial statements
-- Data table / What-If Analysis for Sensitivity testing
-
-## ⚠️ Limitations
-
-- DCF outputs are highly sensitive to WACC and Terminal Growth assumptions, as shown in the Sensitivity Analysis — small shifts materially move the valuation.
-- Margins and reinvestment ratios are assumed stable; the model does not explicitly account for structural shifts (e.g., AI's impact on IT services demand, currency volatility, macro slowdowns).
-- Beta and Market Risk Premium are assumed based on industry norms due to inconsistent reporting across data sources.
-
-## 📁 Files
-
-- `Infosys_DCF_Valuation.xlsx` — full model with all 6 tabs, formulas, and notes
+Built using the **Free Cash Flow to Firm (FCFF)** methodology, this project bridges fundamental corporate finance modeling (Excel) with modern financial analytics and interactive web engineering (Python & Streamlit).
 
 ---
 
-*This project was built as part of an independent finance portfolio to demonstrate applied valuation and financial modeling skills.*
+## 🚀 Live Interactive Dashboard
+
+Explore the live valuation model with dynamic sensitivity sliders and scenario testing:
+
+👉 **[Launch Live Streamlit Dashboard](https://your-streamlit-app-url-here.streamlit.app)**  
+*(Replace this URL with your live Streamlit Cloud link after deploying)*
+
+---
+
+## 📌 Executive Summary & Key Results
+
+| Metric | Model Estimate | Benchmark / Market | Variance / Implication |
+| :--- | :---: | :---: | :---: |
+| **Intrinsic Fair Value per Share** | **₹1,764.45** | ₹1,130.00 (CMP) | **+56.1% Margin of Safety** |
+| **Valuation Verdict** | **STRONG BUY** | — | Substantially Undervalued |
+| **Implied Enterprise Value (EV)** | **₹702,972 Cr** | — | 5-Yr PV + Terminal Value |
+| **Implied Equity Value** | **₹715,997 Cr** | ₹458,547 Cr (Mkt Cap) | Net Cash Position Adds Value |
+| **Discount Rate (WACC)** | **11.36%** | Cost of Equity: 11.48% | 98.0% Equity / 2.0% Debt |
+| **Perpetual Terminal Growth ($g$)**| **5.00%** | India Long-Term GDP Trend | Conservative Horizon Target |
+
+---
+
+## 🔑 Key Features of the Analytics Portal
+
+1. **Enterprise Value to Equity Value Bridge (Waterfall Chart):**
+   * Breaks down explicit 5-year cash flow present value (₹173.8K Cr / 24.7%) vs. terminal value present value (₹529.2K Cr / 75.3%).
+   * Adjusts for Balance Sheet cash (₹22,201 Cr) and total borrowings (₹9,176 Cr) to establish intrinsic equity value.
+2. **Interactive Valuation Simulator (Sidebar Sliders):**
+   * Allows users to stress-test the model by dynamically altering the **WACC discount rate (9.5%–13.5%)**, **terminal growth rate (3.5%–6.5%)**, and **EBIT operating margins (20%–28%)**.
+   * Instantaneous recalculation of fair value per share across Base, Bull, and Bear case scenarios.
+3. **5x5 Sensitivity Matrix Heatmap:**
+   * Evaluates 25 distinct valuation permutations crossing WACC ($\pm 100$ bps) against terminal growth rates ($\pm 100$ bps).
+   * Confirms margin-of-safety resilience: Fair value remains above current market price (₹1,389 to ₹2,481) across all tested scenarios.
+4. **Detailed 5-Year Forecast Schedule (FY2027–FY2031):**
+   * Transparent forecasting of Sales, EBIT, NOPAT, Depreciation, Capex, and Net Working Capital changes.
+5. **Cost of Capital (WACC / CAPM) Breakdown:**
+   * Rigorous documentation of India 10Y G-Sec risk-free rate, Beta, Equity Risk Premium, and asset-light capital structure weighting.
+
+---
+
+## 📐 Financial Methodology & Valuation Architecture
+
+### 1. Free Cash Flow to Firm (FCFF) Formula
+$$\text{FCFF} = \text{NOPAT} + \text{Depreciation} - \text{Capital Expenditures (Capex)} - \Delta \text{Net Working Capital (NWC)}$$
+Where:
+* $\text{NOPAT} = \text{EBIT} \times (1 - \text{Effective Tax Rate})$
+* Normalized EBIT Margin: **24.0%**
+* Effective Tax Rate: **27.0%**
+* Depreciation Rate: **2.9% of Sales**
+* Capital Expenditures: **1.6% of Sales** (Asset-light IT services model)
+* Working Capital Requirement: **-2.1% of Sales**
+
+### 2. Weighted Average Cost of Capital (WACC) via CAPM
+$$\text{Cost of Equity } (K_e) = R_f + \beta \times (\text{ERP}) = 6.80\% + 0.85 \times 5.50\% = 11.48\%$$
+$$\text{WACC} = \left(\frac{E}{V} \times K_e\right) + \left(\frac{D}{V} \times K_d \times (1 - t)\right)$$
+* **Risk-Free Rate ($R_f$):** 6.80% (Benchmark India 10-Year Government Bond Yield as of July 2026)
+* **Beta ($\beta$):** 0.85 (Defensive large-cap IT services, lower market volatility)
+* **Equity Risk Premium (ERP):** 5.50%
+* **Pre-Tax Cost of Debt ($K_d$):** 7.50% (Post-tax: 5.48%)
+* **Capital Structure:** 98.04% Equity ($E/V$) / 1.96% Debt ($D/V$)
+* **Derived WACC:** **11.36%**
+
+### 3. Terminal Value (Gordon Growth Model)
+$$\text{Terminal Value}_{FY2031} = \frac{\text{FCFF}_{FY2032}}{\text{WACC} - g} = \frac{\text{FCFF}_{FY2031} \times (1 + g)}{\text{WACC} - g}$$
+* Terminal Growth Rate ($g$): **5.00%**
+* Terminal Value at FY2031: **₹906,203 Cr**
+* Present Value of Terminal Value: **₹529,151 Cr**
+
+---
+
+## 📂 Project Repository Structure
+
+```
+├── app.py                         # Streamlit Interactive Valuation Portal
+├── Infosys_DCF_Valuation.xlsx      # Original 7-tab Excel financial model
+├── requirements.txt               # Python package dependencies for deployment
+└── README.md                      # Comprehensive project documentation
+```
+
+---
+
+## 💻 Running the Application Locally
+
+### Prerequisites
+* Python 3.9 or higher installed on your machine.
+
+### Installation & Launch Steps
+
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/finance-with-simran/infosys-dcf-valuation.git
+   cd infosys-dcf-valuation
+   ```
+
+2. **Install required dependencies:**
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+3. **Run the Streamlit dashboard:**
+   ```bash
+   streamlit run app.py
+   ```
+   *The application will launch automatically in your browser at `http://localhost:8501`.*
+
+---
+
+## ☁️ How to Deploy to Streamlit Community Cloud (Free)
+
+1. Fork or push this repository to your GitHub account (`finance-with-simran/infosys-dcf-valuation`).
+2. Visit **[share.streamlit.io](https://share.streamlit.io)** and sign in with your GitHub account.
+3. Click **"New app"**, select your repository: `finance-with-simran/infosys-dcf-valuation`.
+4. Set Main file path to: `app.py`.
+5. Click **"Deploy"**.
+6. Once deployed, copy your live link (e.g., `https://infosys-dcf-valuation.streamlit.app`) and paste it into the placeholder at the top of this `README.md`!
+
+---
+
+## 👤 Author
+
+**Syeda Simran Sarwardi**  
+*Aspiring Financial Analyst | Financial Modeling & Quantitative Analytics*  
+* Kolkata, India  
+* [LinkedIn](https://linkedin.com/in/syedasimran) | [GitHub](https://github.com/finance-with-simran)
