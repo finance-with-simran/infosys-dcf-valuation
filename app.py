@@ -9,7 +9,7 @@ import datetime
 # PAGE CONFIGURATION (Institutional Theme)
 # ==========================================
 st.set_page_config(
-    page_title="Infosys Ltd. | DCF Valuation & Market Analytics",
+    page_title="Infosys Ltd. | DCF Valuation & Market Terminal",
     page_icon="📈",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -28,26 +28,26 @@ st.markdown("""
         background-color: #ffffff;
         border: 1px solid #e2e8f0;
         border-radius: 8px;
-        padding: 16px 18px;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        padding: 14px 16px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.03);
     }
     .metric-label {
-        font-size: 0.75rem;
+        font-size: 0.72rem;
         font-weight: 600;
         text-transform: uppercase;
         letter-spacing: 0.05em;
         color: #64748b;
-        margin-bottom: 4px;
+        margin-bottom: 3px;
     }
     .metric-value {
-        font-size: 1.55rem;
+        font-size: 1.45rem;
         font-weight: 700;
         color: #0f172a;
     }
     .metric-sub {
-        font-size: 0.82rem;
+        font-size: 0.78rem;
         font-weight: 500;
-        margin-top: 3px;
+        margin-top: 2px;
     }
     .metric-positive {
         color: #16a34a;
@@ -59,29 +59,37 @@ st.markdown("""
     .company-header {
         background: linear-gradient(90deg, #0f172a 0%, #1e293b 100%);
         color: white;
-        padding: 22px 28px;
-        border-radius: 10px;
-        margin-bottom: 22px;
+        padding: 18px 24px;
+        border-radius: 8px;
+        margin-bottom: 18px;
     }
     .company-title {
-        font-size: 1.75rem;
+        font-size: 1.6rem;
         font-weight: 700;
         margin: 0;
     }
     .company-subtitle {
-        font-size: 0.92rem;
+        font-size: 0.88rem;
         color: #94a3b8;
-        margin-top: 4px;
+        margin-top: 3px;
     }
     .badge {
         display: inline-block;
-        padding: 4px 10px;
+        padding: 3px 8px;
         border-radius: 4px;
-        font-size: 0.75rem;
+        font-size: 0.72rem;
         font-weight: 600;
-        margin-right: 8px;
+        margin-right: 6px;
         background-color: #334155;
         color: #f1f5f9;
+    }
+    
+    .section-box {
+        background-color: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 16px 20px;
+        margin-bottom: 18px;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -104,7 +112,7 @@ TOTAL_DEBT_CR = 9176.0
 # ==========================================
 # SIDEBAR: SCENARIO & MODEL ASSUMPTIONS
 # ==========================================
-st.sidebar.markdown("### ⚙️ Valuation Assumptions")
+st.sidebar.markdown("### ⚙️ Valuation Drivers")
 st.sidebar.markdown("*Adjust drivers below to run live simulations.*")
 
 scenario = st.sidebar.selectbox(
@@ -130,20 +138,18 @@ else:
     growth_bump = 0.00
 
 st.sidebar.markdown("---")
-st.sidebar.markdown("**Cost of Capital & Terminal Value**")
+st.sidebar.markdown("**Cost of Capital & Terminal Growth**")
 wacc_input = st.sidebar.slider("WACC Discount Rate (%)", min_value=9.5, max_value=13.5, value=default_wacc, step=0.1) / 100
 terminal_growth_input = st.sidebar.slider("Terminal Growth Rate (%)", min_value=3.5, max_value=6.5, value=default_g, step=0.1) / 100
 
 st.sidebar.markdown("---")
-st.sidebar.markdown("**Operating Assumptions (FY2027–FY2031)**")
+st.sidebar.markdown("**Operating Assumptions**")
 ebit_margin_input = st.sidebar.slider("Normalized EBIT Margin (%)", min_value=20.0, max_value=28.0, value=default_margin, step=0.5) / 100
 tax_rate_input = st.sidebar.slider("Effective Tax Rate (%)", min_value=22.0, max_value=30.0, value=27.0, step=0.5) / 100
 
-st.sidebar.markdown("---")
-st.sidebar.markdown("**Capital Expenditure & Working Capital**")
-depr_rate = st.sidebar.number_input("Depreciation (% of Sales)", value=2.9, step=0.1) / 100
-capex_rate = st.sidebar.number_input("Capex (% of Sales)", value=1.6, step=0.1) / 100
-nwc_rate = st.sidebar.number_input("Change in NWC (% of Sales)", value=-2.1, step=0.1) / 100
+depr_rate = 2.9 / 100
+capex_rate = 1.6 / 100
+nwc_rate = -2.1 / 100
 
 # ==========================================
 # DCF VALUATION ENGINE
@@ -189,13 +195,13 @@ def run_dcf(wacc, g, ebit_margin, tax_rate, depr_pct, capex_pct, nwc_pct, growth
     
     forecast_df = pd.DataFrame({
         "Year": forecast_years,
-        "Growth Rate (%)": [f"{r*100:.1f}%" for r in growth_rates],
+        "Growth (%)": [f"{r*100:.1f}%" for r in growth_rates],
         "Sales (₹ Cr)": sales_forecast,
         "EBIT (₹ Cr)": ebit_forecast,
         "NOPAT (₹ Cr)": nopat_forecast,
         "Depreciation (₹ Cr)": depr_forecast,
         "Capex (₹ Cr)": capex_forecast,
-        "Δ Working Capital (₹ Cr)": nwc_forecast,
+        "Δ NWC (₹ Cr)": nwc_forecast,
         "FCFF (₹ Cr)": fcff_forecast,
         "Discount Factor": discount_factors,
         "Present Value (₹ Cr)": pv_fcff
@@ -208,11 +214,7 @@ def run_dcf(wacc, g, ebit_margin, tax_rate, depr_pct, capex_pct, nwc_pct, growth
         "equity_value": equity_value,
         "sum_pv_fcff": sum_pv_fcff,
         "pv_terminal_value": pv_terminal_value,
-        "terminal_value": terminal_value,
-        "forecast_df": forecast_df,
-        "fcff_forecast": fcff_forecast,
-        "sales_forecast": sales_forecast,
-        "ebit_forecast": ebit_forecast
+        "forecast_df": forecast_df
     }
 
 val_results = run_dcf(
@@ -227,106 +229,194 @@ val_results = run_dcf(
 )
 
 # ==========================================
-# HEADER BANNER
+# 1. HEADER BANNER
 # ==========================================
 st.markdown(f"""
 <div class="company-header">
     <div style="display: flex; justify-content: space-between; align-items: center;">
         <div>
             <h1 class="company-title">INFOSYS LIMITED (NSE: INFY)</h1>
-            <div class="company-subtitle">Institutional Equity Research, DCF Valuation & Interactive Market Terminal</div>
-            <div style="margin-top: 10px;">
-                <span class="badge">Sector: IT Services & Consulting</span>
+            <div class="company-subtitle">DCF Valuation Model & Interactive Market Terminal</div>
+            <div style="margin-top: 8px;">
+                <span class="badge">Sector: IT Services</span>
                 <span class="badge">Currency: INR (₹ Crores)</span>
-                <span class="badge">Model: FCFF 5-Year Projection + Gordon Growth</span>
+                <span class="badge">Model: FCFF + Gordon Growth</span>
                 <span class="badge">Scenario: {scenario}</span>
             </div>
         </div>
         <div style="text-align: right;">
-            <div style="font-size: 0.85rem; color: #94a3b8;">CURRENT MARKET PRICE</div>
-            <div style="font-size: 2.1rem; font-weight: 700; color: #ffffff;">₹{CURRENT_MARKET_PRICE:,.2f}</div>
+            <div style="font-size: 0.8rem; color: #94a3b8;">CURRENT MARKET PRICE</div>
+            <div style="font-size: 1.9rem; font-weight: 700; color: #ffffff;">₹{CURRENT_MARKET_PRICE:,.2f}</div>
         </div>
     </div>
 </div>
 """, unsafe_allow_html=True)
 
 # ==========================================
-# TOP KPI METRIC CARDS
+# 2. TOP KPI CARDS
 # ==========================================
-col1, col2, col3, col4 = st.columns(4)
-
-with col1:
+c1, c2, c3, c4 = st.columns(4)
+with c1:
     st.markdown(f"""
     <div class="metric-card">
         <div class="metric-label">Intrinsic Fair Value</div>
         <div class="metric-value">₹{val_results['fair_value']:,.2f}</div>
-        <div class="metric-sub metric-neutral">Per Share (DCF Methodology)</div>
+        <div class="metric-sub metric-neutral">Per Share (DCF Engine)</div>
     </div>
     """, unsafe_allow_html=True)
 
-with col2:
+with c2:
     color_class = "metric-positive" if val_results['upside_pct'] > 0 else "text-danger"
     st.markdown(f"""
     <div class="metric-card">
-        <div class="metric-label">Implied Margin of Safety</div>
+        <div class="metric-label">Margin of Safety</div>
         <div class="metric-value {color_class}">{val_results['upside_pct']:+.1f}%</div>
-        <div class="metric-sub">Versus Current Market Price</div>
+        <div class="metric-sub">Versus CMP ₹{CURRENT_MARKET_PRICE:,.0f}</div>
     </div>
     """, unsafe_allow_html=True)
 
-with col3:
-    verdict = "STRONG BUY" if val_results['upside_pct'] > 25 else ("BUY" if val_results['upside_pct'] > 10 else "HOLD / FAIR")
+with c3:
+    verdict = "STRONG BUY" if val_results['upside_pct'] > 25 else ("BUY" if val_results['upside_pct'] > 10 else "HOLD")
     st.markdown(f"""
     <div class="metric-card">
-        <div class="metric-label">Valuation Recommendation</div>
+        <div class="metric-label">Recommendation</div>
         <div class="metric-value metric-positive">{verdict}</div>
-        <div class="metric-sub">Fundamentals-Driven Thesis</div>
+        <div class="metric-sub">Fundamentals-Driven</div>
     </div>
     """, unsafe_allow_html=True)
 
-with col4:
+with c4:
     st.markdown(f"""
     <div class="metric-card">
-        <div class="metric-label">Implied Enterprise Value</div>
+        <div class="metric-label">Enterprise Value</div>
         <div class="metric-value">₹{val_results['enterprise_value']/1000:,.1f}K Cr</div>
-        <div class="metric-sub">WACC: {wacc_input*100:.2f}% | Terminal g: {terminal_growth_input*100:.1f}%</div>
+        <div class="metric-sub">WACC: {wacc_input*100:.2f}% | g: {terminal_growth_input*100:.1f}%</div>
     </div>
     """, unsafe_allow_html=True)
 
 st.markdown("<br>", unsafe_allow_html=True)
 
 # ==========================================
-# 6 INSTITUTIONAL TABS (Including Trading Chart)
+# 3. UNIFIED VISUAL COMMAND CENTER
+# (TradingView Candlestick Chart + Valuation Waterfall Bridge together!)
 # ==========================================
-tab_summary, tab_chart, tab_fcff, tab_sensitivity, tab_wacc, tab_historical = st.tabs([
-    "📊 Valuation Summary & Bridge",
-    "🕯️ Interactive Market Trading Chart",
-    "📈 5-Year FCFF Forecast",
-    "🎯 5x5 Sensitivity Matrix",
-    "⚖️ WACC & Capital Structure",
-    "📜 Historical Performance"
-])
+col_left, col_right = st.columns([1.2, 1.0])
 
-# ------------------------------------------
-# TAB 1: VALUATION SUMMARY & WATERFALL
-# ------------------------------------------
-with tab_summary:
-    st.subheader("Enterprise Value to Equity Value Bridge")
-    st.write("This waterfall chart demonstrates how operating cash flows and net cash position bridge to final equity value per share.")
+# --- LEFT: TRADINGVIEW CANDLESTICK CHART ---
+with col_left:
+    st.markdown("#### 🕯️ Market Trading Chart vs. DCF Fair Value")
+    
+    @st.cache_data(ttl=3600)
+    def fetch_stock_data():
+        try:
+            import yfinance as yf
+            ticker = yf.Ticker("INFY.NS")
+            df = ticker.history(period="1y").reset_index()
+            if df.empty:
+                raise ValueError("No data")
+            return df
+        except Exception:
+            dates = pd.date_range(end=datetime.date.today(), periods=250, freq='B')
+            base = 1050 + np.cumsum(np.random.randn(250) * 8)
+            return pd.DataFrame({
+                "Date": dates,
+                "Open": base - 3,
+                "High": base + 7,
+                "Low": base - 6,
+                "Close": base,
+                "Volume": np.random.randint(5000000, 15000000, size=250)
+            })
+
+    stock_df = fetch_stock_data()
+    stock_df['MA50'] = stock_df['Close'].rolling(50).mean()
+    stock_df['MA200'] = stock_df['Close'].rolling(200).mean()
+
+    candle_fig = make_subplots(
+        rows=2, cols=1,
+        shared_xaxes=True,
+        vertical_spacing=0.04,
+        row_heights=[0.72, 0.28]
+    )
+
+    candle_fig.add_trace(go.Candlestick(
+        x=stock_df['Date'],
+        open=stock_df['Open'], high=stock_df['High'], low=stock_df['Low'], close=stock_df['Close'],
+        name="INFY.NS",
+        increasing_line_color="#22c55e", decreasing_line_color="#ef4444"
+    ), row=1, col=1)
+
+    candle_fig.add_trace(go.Scatter(
+        x=stock_df['Date'], y=stock_df['MA50'],
+        name="50-Day SMA",
+        line=dict(color="#38bdf8", width=1.5)
+    ), row=1, col=1)
+
+    candle_fig.add_trace(go.Scatter(
+        x=stock_df['Date'], y=stock_df['MA200'],
+        name="200-Day SMA",
+        line=dict(color="#f97316", width=1.5)
+    ), row=1, col=1)
+
+    # Gold Fair Value Target Line
+    candle_fig.add_hline(
+        y=val_results['fair_value'],
+        line_dash="dash",
+        line_color="#eab308",
+        line_width=2.5,
+        annotation_text=f"DCF Fair Value: ₹{val_results['fair_value']:,.0f}",
+        annotation_position="top right",
+        annotation_font_color="#eab308",
+        row=1, col=1
+    )
+
+    # CMP Anchor
+    candle_fig.add_hline(
+        y=CURRENT_MARKET_PRICE,
+        line_dash="dot",
+        line_color="#94a3b8",
+        annotation_text=f"CMP: ₹{CURRENT_MARKET_PRICE:,.0f}",
+        annotation_position="bottom right",
+        row=1, col=1
+    )
+
+    vol_colors = ["#22c55e" if c >= o else "#ef4444" for c, o in zip(stock_df['Close'], stock_df['Open'])]
+    candle_fig.add_trace(go.Bar(
+        x=stock_df['Date'], y=stock_df['Volume'],
+        name="Volume",
+        marker_color=vol_colors,
+        opacity=0.65
+    ), row=2, col=1)
+
+    candle_fig.update_layout(
+        height=480,
+        margin=dict(l=10, r=10, t=10, b=10),
+        xaxis_rangeslider_visible=False,
+        plot_bgcolor="#ffffff",
+        paper_bgcolor="#ffffff",
+        yaxis_title="Price (₹)",
+        yaxis2_title="Vol",
+        font=dict(family="Inter, sans-serif"),
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
+    )
+    st.plotly_chart(candle_fig, use_container_width=True)
+
+# --- RIGHT: ENTERPRISE TO EQUITY VALUE WATERFALL BRIDGE ---
+with col_right:
+    st.markdown("#### 📊 Enterprise Value to Equity Value Bridge")
     
     waterfall_fig = go.Figure(go.Waterfall(
         name="Valuation Bridge",
         orientation="v",
         measure=["relative", "relative", "total", "relative", "relative", "total"],
-        x=["PV of 5-Yr Cash Flows", "PV of Terminal Value", "Enterprise Value", "Less: Total Debt", "Add: Cash & Equivalents", "Equity Value"],
+        x=["PV Cash Flows", "PV Terminal Val", "Enterprise Val", "Less: Debt", "Add: Cash", "Equity Value"],
         textposition="outside",
         text=[
-            f"₹{val_results['sum_pv_fcff']:,.0f} Cr",
-            f"₹{val_results['pv_terminal_value']:,.0f} Cr",
-            f"₹{val_results['enterprise_value']:,.0f} Cr",
-            f"-₹{TOTAL_DEBT_CR:,.0f} Cr",
-            f"+₹{CASH_AND_EQUIV_CR:,.0f} Cr",
-            f"₹{val_results['equity_value']:,.0f} Cr"
+            f"₹{val_results['sum_pv_fcff']/1000:,.0f}K",
+            f"₹{val_results['pv_terminal_value']/1000:,.0f}K",
+            f"₹{val_results['enterprise_value']/1000:,.0f}K",
+            f"-₹{TOTAL_DEBT_CR/1000:,.1f}K",
+            f"+₹{CASH_AND_EQUIV_CR/1000:,.1f}K",
+            f"₹{val_results['equity_value']/1000:,.0f}K"
         ],
         y=[
             val_results['sum_pv_fcff'],
@@ -342,359 +432,76 @@ with tab_summary:
         totals={"marker": {"color": "#0f172a"}}
     ))
     waterfall_fig.update_layout(
-        height=450,
-        margin=dict(l=20, r=20, t=30, b=20),
-        plot_bgcolor="#ffffff",
-        paper_bgcolor="#ffffff",
-        yaxis_title="Valuation (₹ Crores)",
-        font=dict(family="Inter, sans-serif")
-    )
-    st.plotly_chart(waterfall_fig, use_container_width=True)
-    
-    st.markdown("---")
-    st.subheader("Executive Valuation Summary")
-    summary_cols = st.columns(2)
-    with summary_cols[0]:
-        st.markdown(f"""
-        * **Present Value of Explicit Forecasts (FY27–FY31):** ₹{val_results['sum_pv_fcff']:,.2f} Cr ({val_results['sum_pv_fcff']/val_results['enterprise_value']*100:.1f}% of Enterprise Value)
-        * **Present Value of Terminal Value:** ₹{val_results['pv_terminal_value']:,.2f} Cr ({val_results['pv_terminal_value']/val_results['enterprise_value']*100:.1f}% of Enterprise Value)
-        * **Enterprise Value:** ₹{val_results['enterprise_value']:,.2f} Cr
-        * **Total Debt (FY26 Balance Sheet):** ₹{TOTAL_DEBT_CR:,.2f} Cr
-        * **Cash & Cash Equivalents (FY26 Balance Sheet):** ₹{CASH_AND_EQUIV_CR:,.2f} Cr
-        """)
-    with summary_cols[1]:
-        st.markdown(f"""
-        * **Implied Equity Value:** ₹{val_results['equity_value']:,.2f} Cr
-        * **Shares Outstanding:** {SHARES_OUTSTANDING_CR:.2f} Crores
-        * **Intrinsic Fair Value per Share:** **₹{val_results['fair_value']:,.2f}**
-        * **Current Market Price (CMP):** ₹{CURRENT_MARKET_PRICE:,.2f}
-        * **Margin of Safety (Upside):** **+{val_results['upside_pct']:.1f}%**
-        """)
-
-# ------------------------------------------
-# TAB 2: INTERACTIVE TRADINGVIEW CANDLESTICK CHART
-# ------------------------------------------
-with tab_chart:
-    st.subheader("🕯️ Market Trading Chart vs. DCF Fair Value Benchmark")
-    st.write(
-        "Interactive TradingView-style candlestick terminal with volume and moving average overlays. "
-        "The gold dashed line represents our calculated **DCF Intrinsic Fair Value (₹1,764.45)**, illustrating the margin of safety relative to market price action."
-    )
-    
-    time_period = st.radio(
-        "Select Historical Horizon",
-        ["6 Months", "1 Year", "2 Years"],
-        index=1,
-        horizontal=True
-    )
-    period_map = {"6 Months": "6mo", "1 Year": "1y", "2 Years": "2y"}
-    
-    # Fetch live or fallback stock data
-    @st.cache_data(ttl=3600)
-    def get_stock_data(period):
-        try:
-            import yfinance as yf
-            ticker = yf.Ticker("INFY.NS")
-            df = ticker.history(period=period).reset_index()
-            if df.empty:
-                raise ValueError("Empty response")
-            return df
-        except Exception:
-            # Fallback simulated realistic data if yfinance is offline
-            dates = pd.date_range(end=datetime.date.today(), periods=250, freq='B')
-            base_price = 1050 + np.cumsum(np.random.randn(250) * 8)
-            return pd.DataFrame({
-                "Date": dates,
-                "Open": base_price - 3,
-                "High": base_price + 8,
-                "Low": base_price - 7,
-                "Close": base_price,
-                "Volume": np.random.randint(5000000, 15000000, size=250)
-            })
-
-    stock_df = get_stock_data(period_map[time_period])
-    stock_df['MA50'] = stock_df['Close'].rolling(50).mean()
-    stock_df['MA200'] = stock_df['Close'].rolling(200).mean()
-    
-    # Create TradingView-style 2-row subplot (Price + Volume)
-    candle_fig = make_subplots(
-        rows=2, cols=1,
-        shared_xaxes=True,
-        vertical_spacing=0.03,
-        row_heights=[0.75, 0.25],
-        subplot_titles=("INFY Price (NSE) with Moving Averages & Fair Value Benchmark", "Trading Volume")
-    )
-    
-    # Candlestick
-    candle_fig.add_trace(go.Candlestick(
-        x=stock_df['Date'],
-        open=stock_df['Open'],
-        high=stock_df['High'],
-        low=stock_df['Low'],
-        close=stock_df['Close'],
-        name="INFY.NS Price",
-        increasing_line_color="#22c55e",
-        decreasing_line_color="#ef4444"
-    ), row=1, col=1)
-    
-    # 50-day & 200-day Moving Averages
-    candle_fig.add_trace(go.Scatter(
-        x=stock_df['Date'], y=stock_df['MA50'],
-        name="50-Day SMA",
-        line=dict(color="#38bdf8", width=1.5)
-    ), row=1, col=1)
-    
-    candle_fig.add_trace(go.Scatter(
-        x=stock_df['Date'], y=stock_df['MA200'],
-        name="200-Day SMA",
-        line=dict(color="#f97316", width=1.5)
-    ), row=1, col=1)
-    
-    # DCF Target Line
-    candle_fig.add_hline(
-        y=val_results['fair_value'],
-        line_dash="dash",
-        line_color="#eab308",
-        line_width=2.5,
-        annotation_text=f"DCF Fair Value: ₹{val_results['fair_value']:,.2f}",
-        annotation_position="top right",
-        annotation_font_color="#eab308",
-        row=1, col=1
-    )
-    
-    # Current CMP benchmark
-    candle_fig.add_hline(
-        y=CURRENT_MARKET_PRICE,
-        line_dash="dot",
-        line_color="#94a3b8",
-        annotation_text=f"Model CMP Anchor: ₹{CURRENT_MARKET_PRICE:,.2f}",
-        annotation_position="bottom right",
-        row=1, col=1
-    )
-    
-    # Volume Bars
-    vol_colors = ["#22c55e" if c >= o else "#ef4444" for c, o in zip(stock_df['Close'], stock_df['Open'])]
-    candle_fig.add_trace(go.Bar(
-        x=stock_df['Date'],
-        y=stock_df['Volume'],
-        name="Volume",
-        marker_color=vol_colors,
-        opacity=0.7
-    ), row=2, col=1)
-    
-    candle_fig.update_layout(
-        height=580,
-        margin=dict(l=20, r=20, t=35, b=20),
-        xaxis_rangeslider_visible=False,
-        plot_bgcolor="#ffffff",
-        paper_bgcolor="#ffffff",
-        yaxis_title="Price (INR ₹)",
-        yaxis2_title="Volume",
-        font=dict(family="Inter, sans-serif"),
-        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
-    )
-    
-    st.plotly_chart(candle_fig, use_container_width=True)
-    
-    # Trading Statistics Strip
-    recent_close = stock_df['Close'].iloc[-1]
-    high_52w = stock_df['High'].max()
-    low_52w = stock_df['Low'].min()
-    
-    m_c1, m_c2, m_c3, m_c4 = st.columns(4)
-    m_c1.metric("Latest Market Close", f"₹{recent_close:,.2f}")
-    m_c2.metric("52-Week High", f"₹{high_52w:,.2f}")
-    m_c3.metric("52-Week Low", f"₹{low_52w:,.2f}")
-    m_c4.metric("DCF Intrinsic Upside", f"+{((val_results['fair_value']-recent_close)/recent_close)*100:.1f}%")
-
-# ------------------------------------------
-# TAB 3: 5-YEAR FCFF FORECAST ENGINE
-# ------------------------------------------
-with tab_fcff:
-    st.subheader("Forecasted Financial Performance (FY2027 – FY2031)")
-    st.write("Detailed projections based on management guidance, tapering growth rates, and normalized EBIT operating margins.")
-    
-    display_df = val_results['forecast_df'].copy()
-    format_dict = {
-        "Sales (₹ Cr)": "{:,.1f}",
-        "EBIT (₹ Cr)": "{:,.1f}",
-        "NOPAT (₹ Cr)": "{:,.1f}",
-        "Depreciation (₹ Cr)": "{:,.1f}",
-        "Capex (₹ Cr)": "{:,.1f}",
-        "Δ Working Capital (₹ Cr)": "{:,.1f}",
-        "FCFF (₹ Cr)": "{:,.1f}",
-        "Discount Factor": "{:.4f}",
-        "Present Value (₹ Cr)": "{:,.1f}"
-    }
-    st.dataframe(display_df.style.format(format_dict), use_container_width=True)
-    
-    st.markdown("---")
-    st.subheader("Revenue & Free Cash Flow Trajectory")
-    
-    chart_years = HISTORICAL_YEARS + ["FY2027", "FY2028", "FY2029", "FY2030", "FY2031"]
-    chart_sales = HISTORICAL_SALES + val_results['sales_forecast']
-    chart_ebit = HISTORICAL_EBIT + val_results['ebit_forecast']
-    
-    fig_trajectory = go.Figure()
-    fig_trajectory.add_trace(go.Bar(
-        x=chart_years,
-        y=chart_sales,
-        name="Sales Revenue (₹ Cr)",
-        marker_color="#0284c7"
-    ))
-    fig_trajectory.add_trace(go.Bar(
-        x=chart_years,
-        y=chart_ebit,
-        name="EBIT Operating Profit (₹ Cr)",
-        marker_color="#0f172a"
-    ))
-    fig_trajectory.update_layout(
-        barmode='group',
-        height=400,
-        margin=dict(l=20, r=20, t=30, b=20),
+        height=480,
+        margin=dict(l=10, r=10, t=10, b=10),
         plot_bgcolor="#ffffff",
         paper_bgcolor="#ffffff",
         yaxis_title="₹ Crores",
-        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
+        font=dict(family="Inter, sans-serif")
     )
-    st.plotly_chart(fig_trajectory, use_container_width=True)
+    st.plotly_chart(waterfall_fig, use_container_width=True)
 
-# ------------------------------------------
-# TAB 4: 5x5 SENSITIVITY MATRIX
-# ------------------------------------------
-with tab_sensitivity:
-    st.subheader("5x5 Valuation Sensitivity Grid")
-    st.write("Evaluating per-share fair values under varying Discount Rates (WACC) and Terminal Growth Rates (g).")
-    
+st.markdown("---")
+
+# ==========================================
+# 4. LOWER SECTION: DETAILED TABLES & SENSITIVITY
+# ==========================================
+col_sec1, col_sec2 = st.columns([1.1, 1.0])
+
+with col_sec1:
+    st.markdown("#### 📈 5-Year Forecast Schedule (FY2027–FY2031)")
+    display_df = val_results['forecast_df'].copy()
+    format_dict = {
+        "Sales (₹ Cr)": "{:,.0f}",
+        "EBIT (₹ Cr)": "{:,.0f}",
+        "NOPAT (₹ Cr)": "{:,.0f}",
+        "Depreciation (₹ Cr)": "{:,.0f}",
+        "Capex (₹ Cr)": "{:,.0f}",
+        "Δ NWC (₹ Cr)": "{:,.0f}",
+        "FCFF (₹ Cr)": "{:,.0f}",
+        "Discount Factor": "{:.4f}",
+        "Present Value (₹ Cr)": "{:,.0f}"
+    }
+    st.dataframe(display_df.style.format(format_dict), use_container_width=True, height=230)
+
+with col_sec2:
+    st.markdown("#### 🎯 5x5 Valuation Sensitivity Grid (Fair Value ₹)")
     wacc_steps = [wacc_input - 0.01, wacc_input - 0.005, wacc_input, wacc_input + 0.005, wacc_input + 0.01]
     g_steps = [terminal_growth_input - 0.01, terminal_growth_input - 0.005, terminal_growth_input, terminal_growth_input + 0.005, terminal_growth_input + 0.01]
     
     matrix_data = []
     matrix_labels = []
-    
     for w in wacc_steps:
         row_vals = []
         row_labels = []
         for g_val in g_steps:
-            res = run_dcf(
-                wacc=w,
-                g=g_val,
-                ebit_margin=ebit_margin_input,
-                tax_rate=tax_rate_input,
-                depr_pct=depr_rate,
-                capex_pct=capex_rate,
-                nwc_pct=nwc_rate,
-                growth_mod=growth_bump
-            )
-            val = res['fair_value']
-            row_vals.append(val)
-            row_labels.append(f"₹{val:,.0f}")
+            res = run_dcf(w, g_val, ebit_margin_input, tax_rate_input, depr_rate, capex_rate, nwc_rate, growth_bump)
+            row_vals.append(res['fair_value'])
+            row_labels.append(f"₹{res['fair_value']:,.0f}")
         matrix_data.append(row_vals)
         matrix_labels.append(row_labels)
         
-    y_axis = [f"WACC: {w*100:.2f}%" for w in wacc_steps]
-    x_axis = [f"g: {g*100:.2f}%" for g in g_steps]
+    y_axis = [f"WACC: {w*100:.1f}%" for w in wacc_steps]
+    x_axis = [f"g: {g*100:.1f}%" for g in g_steps]
     
     heatmap_fig = go.Figure(data=go.Heatmap(
-        z=matrix_data,
-        x=x_axis,
-        y=y_axis,
-        text=matrix_labels,
-        texttemplate="%{text}",
-        textfont={"size": 14, "family": "Inter"},
-        colorscale="Blues",
-        colorbar=dict(title="Fair Value (₹)")
+        z=matrix_data, x=x_axis, y=y_axis,
+        text=matrix_labels, texttemplate="%{text}",
+        textfont={"size": 13, "family": "Inter"},
+        colorscale="Blues", showscale=False
     ))
     heatmap_fig.update_layout(
-        height=450,
-        margin=dict(l=20, r=20, t=30, b=20),
+        height=230,
+        margin=dict(l=10, r=10, t=10, b=10),
         xaxis_title="Terminal Growth Rate",
-        yaxis_title="Cost of Capital (WACC)"
+        yaxis_title="Discount Rate (WACC)"
     )
     st.plotly_chart(heatmap_fig, use_container_width=True)
-    
-    st.info(f"💡 **Takeaway:** In every single tested scenario (range: ₹{min([min(r) for r in matrix_data]):,.0f} to ₹{max([max(r) for r in matrix_data]):,.0f}), the intrinsic fair value remains above the Current Market Price of ₹{CURRENT_MARKET_PRICE:,.0f}, demonstrating significant downside protection.")
 
-# ------------------------------------------
-# TAB 5: WACC & COST OF CAPITAL
-# ------------------------------------------
-with tab_wacc:
-    st.subheader("Weighted Average Cost of Capital (WACC) & CAPM")
-    
-    wacc_c1, wacc_c2 = st.columns(2)
-    
-    with wacc_c1:
-        st.markdown("#### Cost of Equity (CAPM)")
-        capm_df = pd.DataFrame({
-            "Component": [
-                "Risk-Free Rate (Rf)",
-                "Beta (β)",
-                "Equity Market Risk Premium (ERP)",
-                "Cost of Equity (Ke)"
-            ],
-            "Assumption": [
-                "6.80%",
-                "0.85",
-                "5.50%",
-                "11.48%"
-            ],
-            "Methodology / Rationale": [
-                "India 10-Year Government Bond (G-Sec) Benchmark Yield",
-                "Large-Cap Indian IT services, defensive cash flows & lower volatility",
-                "Standard Indian Equity Market risk premium",
-                "Ke = Rf + β × ERP = 6.8% + (0.85 × 5.5%) = 11.48%"
-            ]
-        })
-        st.table(capm_df)
-        
-    with wacc_c2:
-        st.markdown("#### Capital Structure & Cost of Debt")
-        debt_df = pd.DataFrame({
-            "Metric": [
-                "Pre-Tax Cost of Debt (Kd)",
-                "Effective Tax Rate (t)",
-                "Post-Tax Cost of Debt [Kd × (1-t)]",
-                "Equity Capital Weight (E/V)",
-                "Debt Capital Weight (D/V)",
-                "Derived WACC"
-            ],
-            "Value": [
-                "7.50%",
-                "27.00%",
-                "5.48%",
-                "98.04%",
-                "1.96%",
-                "11.36%"
-            ]
-        })
-        st.table(debt_df)
-        
-    st.markdown("---")
-    st.markdown("#### Asset-Light Capital Structure Rationale")
-    st.write(
-        "Infosys operates an asset-light IT services model with virtually zero net debt (₹22,201 Cr Cash vs ₹9,176 Cr Borrowings). "
-        "Consequently, the capital structure is heavily weighted toward Equity (~98%), making the Cost of Equity (11.48%) the dominant discount driver."
-    )
-
-# ------------------------------------------
-# TAB 6: HISTORICAL PERFORMANCE
-# ------------------------------------------
-with tab_historical:
-    st.subheader("Five-Year Historical Financial Actuals (FY2022 – FY2026)")
-    
-    hist_df = pd.DataFrame({
-        "Metric (₹ Crore)": [
-            "Sales",
-            "Operating Profit (EBIT)",
-            "EBIT Margin (%)",
-            "Depreciation",
-            "Capex",
-            "Change in Working Capital"
-        ],
-        "FY2022": [f"₹{HISTORICAL_SALES[0]:,}", f"₹{HISTORICAL_EBIT[0]:,}", f"{HISTORICAL_EBIT[0]/HISTORICAL_SALES[0]*100:.1f}%", f"₹{HISTORICAL_DEPR[0]:,}", f"₹{HISTORICAL_CAPEX[0]:,}", f"₹{HISTORICAL_NWC_CHANGE[0]:,}"],
-        "FY2023": [f"₹{HISTORICAL_SALES[1]:,}", f"₹{HISTORICAL_EBIT[1]:,}", f"{HISTORICAL_EBIT[1]/HISTORICAL_SALES[1]*100:.1f}%", f"₹{HISTORICAL_DEPR[1]:,}", f"₹{HISTORICAL_CAPEX[1]:,}", f"₹{HISTORICAL_NWC_CHANGE[1]:,}"],
-        "FY2024": [f"₹{HISTORICAL_SALES[2]:,}", f"₹{HISTORICAL_EBIT[2]:,}", f"{HISTORICAL_EBIT[2]/HISTORICAL_SALES[2]*100:.1f}%", f"₹{HISTORICAL_DEPR[2]:,}", f"₹{HISTORICAL_CAPEX[2]:,}", f"₹{HISTORICAL_NWC_CHANGE[2]:,}"],
-        "FY2025": [f"₹{HISTORICAL_SALES[3]:,}", f"₹{HISTORICAL_EBIT[3]:,}", f"{HISTORICAL_EBIT[3]/HISTORICAL_SALES[3]*100:.1f}%", f"₹{HISTORICAL_DEPR[3]:,}", f"₹{HISTORICAL_CAPEX[3]:,}", f"₹{HISTORICAL_NWC_CHANGE[3]:,}"],
-        "FY2026": [f"₹{HISTORICAL_SALES[4]:,}", f"₹{HISTORICAL_EBIT[4]:,}", f"{HISTORICAL_EBIT[4]/HISTORICAL_SALES[4]*100:.1f}%", f"₹{HISTORICAL_DEPR[4]:,}", f"₹{HISTORICAL_CAPEX[4]:,}", f"₹{HISTORICAL_NWC_CHANGE[4]:,}"]
-    })
-    st.table(hist_df)
+# Final Capital Structure strip
+st.markdown("---")
+st.markdown(
+    f"**Model Parameters:** Risk-Free Rate = 6.80% (10Y G-Sec) | Beta = 0.85 | Equity Risk Premium = 5.50% | "
+    f"Cost of Equity = 11.48% | Capital Structure = 98.0% Equity / 2.0% Debt | WACC = {wacc_input*100:.2f}% | "
+    f"Shares Outstanding = {SHARES_OUTSTANDING_CR:.2f} Cr"
+)
